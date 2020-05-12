@@ -117,7 +117,7 @@
 		function buildList(){
 			var wrapper = document.getElementById('list-wrapper')
 
-			var url = 'http://127.0.0.1:8000/api/errand-summary/'
+			var url = 'https://chloetaskapp.herokuapp.com/api/errand-summary/'
 
 			fetch(url)
 			.then((resp) => resp.json())
@@ -207,9 +207,9 @@
 		var form = document.getElementById('form-wrapper')
 		form.addEventListener('submit', function(e){
 			e.preventDefault()
-			var url = 'http://127.0.0.1:8000/api/errand-create/'
+			var url = 'https://chloetaskapp.herokuapp.com/api/errand-create/'
 			if (currentItem != null){
-				var url = `http://127.0.0.1:8000/api/errand-update/${currentItem.id}/`
+				var url = `https://chloetaskapp.herokuapp.com/api/errand-update/${currentItem.id}/`
 				currentItem = null
 			}
 
@@ -240,7 +240,7 @@
 
 
 		function deleteItem(item){
-			fetch(`http://127.0.0.1:8000/api/errand-delete/${item.id}/`, {
+			fetch(`https://chloetaskapp.herokuapp.com/api/errand-delete/${item.id}/`, {
 				method:'DELETE', 
 				headers:{
 					'Content-type':'application/json',
@@ -254,7 +254,7 @@
 		function itemStrikethrough(item){
 
 			item.finished = !item.finished
-			fetch(`http://127.0.0.1:8000/api/errand-update/${item.id}/`, {
+			fetch(`https://chloetaskapp.herokuapp.com/api/errand-update/${item.id}/`, {
 				method:'POST', 
 				headers:{
 					'Content-type':'application/json',
