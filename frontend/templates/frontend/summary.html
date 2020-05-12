@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Task Management - TO DO</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+	<link href="https://fonts.googleapis.com/css?family=Montserrat&display=swap" rel="stylesheet">
+
+	<style type="text/css">
+		body{
+		  background: rgb(230,230,250);
+		}
+
+
+		h1, h2, h3, h4, h5, p, span, strike{
+		  font-family: 'Montserrat', sans-serif;
+
+		}
+
+
+		#errand-container{
+		  max-width:750px;
+		  margin:0 auto;
+		  box-shadow: 0 10px 25px rgba(180, 148, 179, 0.5);
+		  background-color: #ffffff;
+		  
+		  margin-top:125px;
+		  margin-bottom:125px;
+
+		  justify-content: space-around;
+		  align-items: flex-start;
+
+		}
+
+		#form-wrapper{
+		  border-bottom: 2px solid #dfddddc9;
+		  background-color: #ffffff;
+		  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+ 		  padding:50px;
+		}
+
+		#enter-button{
+		  background-color: #7035b4;
+		  border-radius: 0;
+		  border:0;
+		  color: #ffffff;
+		}
+
+		.flex-wrapper{
+			display: flex;
+		}
+
+		.errand-wrapper{
+			cursor: pointer;
+			
+			border-bottom: 2px solid  #dfddddc9;
+		  	margin:3px;
+		  	padding: 5px;
+		  	padding:25px;
+		  	color: #686868;
+			}
+
+	</style>
+
+</head>
+<body>
+	<div class="container">
+
+		<div id="errand-container">
+		<br></br>
+          <h3>Task Management To-Do App</h3>
+          <h5><a href="/about">ABOUT.</a> <a href="/api">API.</a> </h5>
+			<div id="form-wrapper">
+				<form id="form">
+					<div class="flex-wrapper">
+						<div style="flex: 6">
+							<input id="name" class="form-control" type="text" name="name" placeholder="Add a new entry...">
+						</div>
+						<div style="flex: 1">
+							<input id="enter-button" class="btn" type="submit" >
+						</div>
+					</div>
+				</form>
+			</div>
+
+			<div id="list-wrapper">
+			
+			</div>	
+		</div>
+
+	</div>
+
+	<script type="text/javascript">
+
+		function getCookie(name) {
+		    var cookieValue = null;
+		    if (document.cookie && document.cookie !== '') {
+		        var cookies = document.cookie.split(';');
+		        for (var i = 0; i < cookies.length; i++) {
+		            var cookie = cookies[i].trim();
+		            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+		                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+		                break;
+		            }
+		        }
+		    }
+		    return cookieValue;
+		}
+		var csrftoken = getCookie('csrftoken');
+
+		var currentItem = null
+		var list_snapshot = []
+
+		buildList()
+
+		function buildList(){
+			var wrapper = document.getElementById('list-wrapper')
+
+			var url = 'http://127.0.0.1:8000/api/errand-summary/'
+
+			fetch(url)
+			.then((resp) => resp.json())
+			.then(function(data){
+				console.log('Data:', data)
+
+				var list = data
+				for (var i in list){
+
+
+					try{
+						document.getElementById(`data-row-${i}`).remove()
+					}catch(err){
+
+					}
+			
+
+
+					var name = `<span class="name">${list[i].name}</span>`
+					if (list[i].finished == true){
+						name = `<strike class="name">${list[i].name}</strike>`
+					}
+
+					var item = `
+						<div id="data-row-${i}" class="task-wrapper flex-wrapper">
+							<div style="flex:7">
+								${name}
+							</div>
+							<div style="flex:1">
+								<button class="btn btn-sm btn-outline-secondary edit">Update </button>
+							</div>
+							<div style="flex:1">
+								<button class="btn btn-sm btn-outline-danger delete">Delete</button>
+							</div>
+						</div>
+
+					`
+					wrapper.innerHTML += item
+	
+				}
+
+				if (list_snapshot.length > list.length){
+					for (var i = list.length; i < list_snapshot.length; i++){
+						document.getElementById(`data-row-${i}`).remove()
+					}
+				}
+
+				list_snapshot = list
+
+
+				for (var i in list){
+					var editBtn = document.getElementsByClassName('edit')[i]
+					var deleteBtn = document.getElementsByClassName('delete')[i]
+					var name = document.getElementsByClassName('name')[i]
+
+
+					editBtn.addEventListener('click', (function(item){
+						return function(){
+							editItem(item)
+						}
+					})(list[i]))
+
+
+					deleteBtn.addEventListener('click', (function(item){
+						return function(){
+							deleteItem(item)
+						}
+					})(list[i]))
+
+
+
+					
+					name.addEventListener('click', (function(item){
+						return function(){
+							itemStrikethrough(item)
+						}
+					})(list[i]))
+
+
+				}
+
+
+			})
+		}
+
+
+		var form = document.getElementById('form-wrapper')
+		form.addEventListener('submit', function(e){
+			e.preventDefault()
+			var url = 'http://127.0.0.1:8000/api/errand-create/'
+			if (currentItem != null){
+				var url = `http://127.0.0.1:8000/api/errand-update/${currentItem.id}/`
+				currentItem = null
+			}
+
+
+
+			var name = document.getElementById('name').value
+			fetch(url, {
+				method:'POST',
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},
+				body:JSON.stringify({'name':name})
+			}
+			).then(function(response){
+				buildList()
+				document.getElementById('form').reset()
+			})
+		})
+
+
+
+
+		function editItem(item){
+			currentItem = item
+			document.getElementById('name').value = currentItem.name
+		}
+
+
+		function deleteItem(item){
+			fetch(`http://127.0.0.1:8000/api/errand-delete/${item.id}/`, {
+				method:'DELETE', 
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				}
+			}).then((response) => {
+				buildList()
+			})
+		}
+
+		function itemStrikethrough(item){
+
+			item.finished = !item.finished
+			fetch(`http://127.0.0.1:8000/api/errand-update/${item.id}/`, {
+				method:'POST', 
+				headers:{
+					'Content-type':'application/json',
+					'X-CSRFToken':csrftoken,
+				},
+				body:JSON.stringify({'name':item.name, 'finished':item.finished})
+			}).then((response) => {
+				buildList()
+			})
+		}
+
+
+	</script>
+
+</body>
+</html>
