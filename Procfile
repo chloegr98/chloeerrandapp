@@ -1,1 +1,1 @@
-web: gunicorn taskapp.wsgi --log-file -
+web:gunicorn taskapp.wsgi --log-file -
