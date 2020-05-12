@@ -1,1 +1,1 @@
-web: gunicorn chloefinal:taskapp
+web: gunicorn chloefinal.wsgi
